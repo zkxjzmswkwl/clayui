@@ -3,11 +3,15 @@ module clayui.app;
 import clayui;
 import clayd : Clay_LayoutDirection;
 import raylib;
+version (Windows) {
+	import core.sys.windows.windows;
+}
 
 void main()
 {
 	enum int width = 800;
 	enum int height = 600;
+	int decorationsHidden = 0;
 
 	InitWindow(width, height, "build test");
 	SetTargetFPS(60);
@@ -30,6 +34,19 @@ void main()
 
 	while (!WindowShouldClose())
 	{
+		version (Windows)
+		{
+			if (GetAsyncKeyState('F') & 1)
+			{
+				void* hwnd = GetWindowHandle();
+				if (hwnd != null)
+				{
+					decorationsHidden = ClayWin32.toggleWindowDecorations(hwnd, decorationsHidden);
+				}
+			}
+			if (GetAsyncKeyState('Q') & 1)
+				CloseWindow();
+		}
 		BeginDrawing();
 		ClearBackground(raylib.Color(245, 245, 245, 255));
 		app.frame();

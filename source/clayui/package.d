@@ -14,3 +14,6 @@ public import clayui.button;
 public import clayui.image;
 public import clayui.text_input;
 public import clayui.app_runner;
+version (Windows) {
+    public import clayui.win32;
+}
