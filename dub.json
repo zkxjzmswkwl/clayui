@@ -1,0 +1,30 @@
+{
+	"name": "clayui",
+	"description": "ui lib for clayd bindings",
+	"authors": ["zkxjzmswkwl"],
+	"license": "MIT",
+	"targetType": "library",
+	"sourcePaths": ["source"],
+	"dependencies": {
+		"clayd": "~>0.0.1",
+		"raylib-d": "~>5.5.3"
+	},
+	"configurations": [
+		{
+			"name": "library",
+			"targetType": "library"
+		},
+		{
+			"name": "application",
+			"targetType": "executable",
+			"mainSourceFile": "source/clayui/app.d",
+			"libs": ["raylib"],
+			"lflags-osx": ["-L/opt/homebrew/lib", "-L/usr/local/lib"],
+			"lflags-posix": ["-L/usr/local/lib"],
+			"dependencies": {
+				"clayd": { "path": "../clayd" },
+				"raylib-d": "~>5.5.3"
+			}
+		}
+	]
+}

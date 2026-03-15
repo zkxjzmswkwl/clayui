@@ -1,0 +1,7 @@
+{
+	"fileVersion": 1,
+	"versions": {
+		"clayd": "0.0.1",
+		"raylib-d": "5.5.3"
+	}
+}
