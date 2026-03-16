@@ -37,6 +37,16 @@ final class Application
 		engine.setMeasureFont(font);
 	}
 
+	/// Sets the font used for both layout text measurement and rendering.
+	/// Use this with a font loaded at an atlas size >= your largest UI font size (e.g. 24–32).
+	void setFont(Font* font)
+	{
+		engine.setMeasureFont(font);
+		auto r = cast(RaylibRenderer) renderer;
+		if (r !is null)
+			r.setFont(font);
+	}
+
 	void frame()
 	{
 		Clay_Vector2 mouse = getMousePosition();

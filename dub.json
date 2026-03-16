@@ -6,7 +6,7 @@
 	"targetType": "library",
 	"sourcePaths": ["source"],
 	"dependencies": {
-		"clayd": "~>0.0.1",
+		"clayd": "~>0.0.3",
 		"raylib-d": "~>5.5.3"
 	},
 	"configurations": [
@@ -22,7 +22,7 @@
 			"lflags-osx": ["-L/opt/homebrew/lib", "-L/usr/local/lib"],
 			"lflags-posix": ["-L/usr/local/lib"],
 			"dependencies": {
-				"clayd": "~>0.0.2",
+				"clayd": "~>0.0.3",
 				"raylib-d": "~>5.5.3"
 			}
 		}
