@@ -3,6 +3,7 @@ module clayui.raylib_renderer;
 import clayd;
 import clayui.irenderer;
 import raylib;
+import std.math.rounding : round;
 
 final class RaylibRenderer : IRenderer
 {
@@ -120,11 +121,12 @@ final class RaylibRenderer : IRenderer
 		Color c = clayColorToRaylib(rd.textColor);
 
 		Vector2 pos;
-		pos.x = cmd.boundingBox.x;
-		pos.y = cmd.boundingBox.y;
+		pos.x = round(cmd.boundingBox.x);
+		pos.y = round(cmd.boundingBox.y);
 
+		float spacing = cast(float) rd.letterSpacing;
 		if (fontPtr !is null)
-			DrawTextEx(*fontPtr, cast(const(char)*)buf.ptr, pos, fontSize, 0, c);
+			DrawTextEx(*fontPtr, cast(const(char)*)buf.ptr, pos, fontSize, spacing, c);
 		else
 			DrawText(cast(const(char)*)buf.ptr, cast(int)pos.x, cast(int)pos.y, cast(int)fontSize, c);
 	}
