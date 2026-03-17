@@ -58,6 +58,30 @@ abstract class Component : IComponent
 		return this;
 	}
 
+	Component setBorderColor(float r, float g, float b, float a = 255)
+	{
+		decl.border.color = clayColor(r, g, b, a);
+		return this;
+	}
+
+	Component setBorderWidth(ushort width)
+	{
+		decl.border.width.left = width;
+		decl.border.width.right = width;
+		decl.border.width.top = width;
+		decl.border.width.bottom = width;
+		return this;
+	}
+
+	Component setBorderWidth(ushort left, ushort right, ushort top, ushort bottom)
+	{
+		decl.border.width.left = left;
+		decl.border.width.right = right;
+		decl.border.width.top = top;
+		decl.border.width.bottom = bottom;
+		return this;
+	}
+
 	Component setGrow()
 	{
 		decl.layout.sizing.width = claySizingGrow();

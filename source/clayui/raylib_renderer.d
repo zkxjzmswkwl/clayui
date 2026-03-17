@@ -69,7 +69,8 @@ final class RaylibRenderer : IRenderer
 				cast(int) cmd.boundingBox.x,
 				cast(int) cmd.boundingBox.y,
 				cast(int) cmd.boundingBox.width,
-				cast(int) cmd.boundingBox.height);
+				cast(int) cmd.boundingBox.height
+			);
 			break;
 		case Clay_RenderCommandType.renderCommandTypeScissorEnd:
 			EndScissorMode();
