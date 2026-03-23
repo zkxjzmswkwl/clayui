@@ -69,14 +69,16 @@ class Style
 unittest
 {
     Style s = new Style();
+
     s.setPadding(1, 2, 3, 4);
     assert(s.paddingRight()  == 1);
     assert(s.paddingLeft()   == 2);
     assert(s.paddingTop()    == 3);
     assert(s.paddingBottom() == 4);
+
     s.setColor(1, 2, 3, 4);
-    assert(s.red() == 1);
+    assert(s.red()   == 1);
     assert(s.green() == 2);
-    assert(s.blue() == 3);
+    assert(s.blue()  == 3);
     assert(s.alpha() == 4);
 }

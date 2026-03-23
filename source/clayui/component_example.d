@@ -1,11 +1,17 @@
-module clayui.app;
+module clayui.component_example;
+
+/// Runnable demo: `dub run -c component-example` from the clayui package directory.
+///
+/// Custom components live in [`clayui.demo_components`] and are shared with `sdl3_example`.
 
 import std.stdio;
 import std.string : toStringz;
+import clayd;
 import clayui;
-import clayd : Clay_LayoutDirection;
+import clayui.demo_components;
 import raylib;
-version (Windows) {
+version (Windows)
+{
 	import core.sys.windows.windows;
 }
 
@@ -17,7 +23,6 @@ struct UIFontResult
 	bool loaded;
 }
 
-// temp, this is ugly.
 UIFontResult loadUIFont()
 {
 	string path;
@@ -34,31 +39,31 @@ UIFontResult loadUIFont()
 
 void main()
 {
-	enum int width = 800;
-	enum int height = 600;
-	int decorationsHidden = 0;
+	enum int width = 720;
+	enum int height = 480;
 
-	InitWindow(width, height, "build test");
+	InitWindow(width, height, "Component examples");
 	SetTargetFPS(60);
 
 	UIFontResult fontResult = loadUIFont();
 
 	auto root = new Panel("root", Clay_LayoutDirection.topToBottom);
 	root.setGrow();
+	root.setBackgroundColor(245, 246, 250, 255);
+	root.setPadding(28);
+	root.setChildGap(20);
 
-	root.setBackgroundColor(250, 250, 255);
-	root.setPadding(24);
-	root.setChildGap(16);
+	auto intro = new Label("intro", "Below: Badge, Divider, KeyValueRow, and ProfileSnippet (all extend Component).");
+	intro.setFontSize(15);
+	intro.setTextColor(60, 60, 70, 255);
+	root.addChild(intro);
 
-	auto titleLabel = new Label("title", "does it build? that is the question.");
-	titleLabel.setFontSize(24);
-	root.addChild(titleLabel);
+	auto snippet = new ProfileSnippet("profile");
+	root.addChild(snippet);
 
-	auto btn = new Button("demoButton", "Click me");
-	btn.setOnClick(() {
-		writeln("Clicked! Amazing instruction following skills.");
-	});
-	btn.setFontSize(24);
+	auto btn = new Button("demoBtn", "Library Button (click)");
+	btn.setOnClick(() { writeln("Button clicked — works alongside custom components."); });
+	btn.setFontSize(16);
 	root.addChild(btn);
 
 	IComponent rootComponent = root;
@@ -70,17 +75,11 @@ void main()
 	{
 		version (Windows)
 		{
-			if (GetAsyncKeyState('F') & 1)
-			{
-				void* hwnd = GetWindowHandle();
-				if (hwnd != null)
-					decorationsHidden = ClayWin32.toggleWindowDecorations(hwnd, decorationsHidden);
-			}
 			if (GetAsyncKeyState('Q') & 1)
 				CloseWindow();
 		}
 		BeginDrawing();
-		ClearBackground(raylib.Color(245, 245, 245, 255));
+		ClearBackground(raylib.Color(238, 239, 244, 255));
 		app.frame();
 		EndDrawing();
 	}

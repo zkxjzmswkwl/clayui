@@ -1,5 +1,11 @@
 module clayui.image;
 
+version (clay_sdl3)
+{
+}
+else
+{
+
 import clayd;
 import clayui.component;
 import clayui.icomponent;
@@ -101,4 +107,6 @@ class Image : Component
 		decl.layout.sizing.width = claySizingFixed(width);
 		decl.layout.sizing.height = claySizingFixed(height);
 	}
+}
+
 }

@@ -5,9 +5,17 @@ import clayui.layout_engine;
 import clayui.layout_context;
 import clayui.irenderer;
 import clayui.icomponent;
-import clayui.raylib_renderer;
 import clayui.ilayout_context;
-import raylib;
+
+version (clay_sdl3)
+{
+	import bindbc.sdl;
+}
+else
+{
+	import clayui.raylib_renderer;
+	import raylib;
+}
 
 final class Application
 {
@@ -24,33 +32,69 @@ final class Application
 		this.rootComponent = rootComponent;
 		engine = new LayoutEngine();
 		engine.initialize(width, height);
-		renderer = new RaylibRenderer();
+		version (clay_sdl3)
+		{
+			renderer = null;
+		}
+		else
+		{
+			renderer = new RaylibRenderer();
+		}
 	}
 
-	void setRenderer(IRenderer renderer)
+	void setRenderer(IRenderer r)
 	{
-		this.renderer = renderer;
+		renderer = r;
 	}
 
-	void setMeasureFont(Font* font)
+	version (clay_sdl3)
 	{
-		engine.setMeasureFont(font);
-	}
+		void setMeasureFont(TTF_Font* font)
+		{
+			engine.setMeasureFont(font);
+		}
 
-	/// Sets the font used for both layout text measurement and rendering.
-	/// Use this with a font loaded at an atlas size >= your largest UI font size (e.g. 24–32).
-	void setFont(Font* font)
+		void setTtfFontTable(TTF_Font** fonts, size_t count)
+		{
+			engine.setTtfFontTable(fonts, count);
+		}
+	}
+	else
 	{
-		engine.setMeasureFont(font);
-		auto r = cast(RaylibRenderer) renderer;
-		if (r !is null)
-			r.setFont(font);
+		void setMeasureFont(Font* font)
+		{
+			engine.setMeasureFont(font);
+		}
+
+		/// Sets the font used for both layout text measurement and rendering.
+		void setFont(Font* font)
+		{
+			engine.setMeasureFont(font);
+			auto r = cast(RaylibRenderer) renderer;
+			if (r !is null)
+				r.setFont(font);
+		}
 	}
 
 	void frame()
 	{
-		Clay_Vector2 mouse = getMousePosition();
-		bool down = IsMouseButtonDown(MouseButton.MOUSE_BUTTON_LEFT);
+		Clay_Vector2 mouse;
+		bool down;
+		version (clay_sdl3)
+		{
+			float mx, my;
+			SDL_MouseButtonFlags flags = SDL_GetMouseState(&mx, &my);
+			down = (flags & SDL_MouseButtonFlags.left) != 0;
+			mouse.x = mx;
+			mouse.y = my;
+		}
+		else
+		{
+			Vector2 m = GetMousePosition();
+			mouse.x = m.x;
+			mouse.y = m.y;
+			down = IsMouseButtonDown(MouseButton.MOUSE_BUTTON_LEFT);
+		}
 		engine.setPointer(cast(int) mouse.x, cast(int) mouse.y, down);
 		engine.updateScroll(true, 0.016f, 0, 0);
 
@@ -70,14 +114,5 @@ final class Application
 		widthValue = width;
 		heightValue = height;
 		engine.setDimensions(width, height);
-	}
-
-	private static Clay_Vector2 getMousePosition()
-	{
-		Vector2 m = GetMousePosition();
-		Clay_Vector2 v;
-		v.x = m.x;
-		v.y = m.y;
-		return v;
 	}
 }
