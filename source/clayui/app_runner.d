@@ -10,6 +10,12 @@ import clayui.ilayout_context;
 version (clay_sdl3)
 {
 	import bindbc.sdl;
+	import clayui.text_input;
+	import core.stdc.string;
+	import sdl.clipboard;
+	import sdl.keycode;
+	import sdl.keyboard;
+	import sdl.stdinc;
 }
 else
 {
@@ -24,6 +30,11 @@ final class Application
 	private IComponent rootComponent;
 	private int widthValue;
 	private int heightValue;
+
+	version (clay_sdl3)
+	{
+		private TextInput focusedTextInput_;
+	}
 
 	this(int width, int height, IComponent rootComponent)
 	{
@@ -58,6 +69,66 @@ final class Application
 		{
 			engine.setTtfFontTable(fonts, count);
 		}
+
+		void setFocusedTextInput(TextInput t)
+		{
+			if (focusedTextInput_ !is null && focusedTextInput_ !is t)
+				focusedTextInput_.setFocused(false);
+			focusedTextInput_ = t;
+			if (t !is null)
+				t.setFocused(true);
+		}
+
+		void clearFocusedTextInput()
+		{
+			if (focusedTextInput_ !is null)
+			{
+				focusedTextInput_.setFocused(false);
+				focusedTextInput_ = null;
+			}
+		}
+
+		void processSdlTextUtf8(const(char)* text)
+		{
+			if (focusedTextInput_ is null || text is null)
+				return;
+			size_t len = strlen(text);
+			if (len == 0)
+				return;
+			string s = cast(string) text[0 .. len];
+			foreach (dchar c; s)
+				focusedTextInput_.appendChar(c);
+		}
+
+		void processSdlKeyDown(SDL_KeyCode key, bool down, bool repeat)
+		{
+			if (!down || focusedTextInput_ is null)
+				return;
+			if (key == SDL_KeyCode.backspace)
+			{
+				focusedTextInput_.backspace();
+				return;
+			}
+			if (repeat)
+				return;
+			const SDL_KeyMod mods = SDL_GetModState();
+			const bool pasteMod = (mods & SDL_KeyMod.ctrl) != 0 || (mods & SDL_KeyMod.gui) != 0;
+			if (key == SDL_KeyCode.v && pasteMod)
+			{
+				if (!SDL_HasClipboardText())
+					return;
+				char* raw = SDL_GetClipboardText();
+				if (raw is null)
+					return;
+				scope (exit)
+					SDL_free(cast(void*) raw);
+				const size_t len = strlen(raw);
+				if (len == 0)
+					return;
+				string s = cast(string) raw[0 .. len];
+				focusedTextInput_.appendText(s);
+			}
+		}
 	}
 	else
 	{
@@ -66,7 +137,6 @@ final class Application
 			engine.setMeasureFont(font);
 		}
 
-		/// Sets the font used for both layout text measurement and rendering.
 		void setFont(Font* font)
 		{
 			engine.setMeasureFont(font);

@@ -25,14 +25,15 @@
 			"dependencies": {
 				"clayd": {
 					"path": "../clayd"
-				}
+				},
+				"bindbc-loader": "~>1.1.0"
 			},
 			"subConfigurations": {
 				"clayd": "SDL3"
 			},
 			"libs-windows": ["user32"],
 			"versions": ["clay_sdl3", "SDL_3_4", "SDL_TTF_3_2_2", "SDL_Image_3_2"],
-			"excludedSourceFiles": ["source/clayui/app.d", "source/clayui/component_example.d", "source/clayui/sdl3_example.d", "source/clayui/raylib_renderer.d", "source/clayui/image.d"]
+			"excludedSourceFiles": ["source/clayui/app.d", "source/clayui/component_example.d", "source/clayui/sdl3_example.d", "source/clayui/raylib_renderer.d"]
 		},
 		{
 			"name": "application",
@@ -79,15 +80,16 @@
 			"dependencies": {
 				"clayd": {
 					"path": "../clayd"
-				}
+				},
+				"bindbc-loader": "~>1.1.0"
 			},
 			"subConfigurations": {
 				"clayd": "SDL3"
 			},
 			"libs-windows": ["user32"],
 			"versions": ["clay_sdl3", "SDL_3_4", "SDL_TTF_3_2_2", "SDL_Image_3_2"],
-			"excludedSourceFiles": ["source/clayui/app.d", "source/clayui/component_example.d", "source/clayui/raylib_renderer.d", "source/clayui/image.d"],
-			"copyFiles": ["SDL3.dll", "SDL3_image.dll", "SDL3_ttf.dll"]
+			"excludedSourceFiles": ["source/clayui/app.d", "source/clayui/component_example.d", "source/clayui/raylib_renderer.d"],
+			"copyFiles-windows": ["SDL3.dll", "SDL3_image.dll", "SDL3_ttf.dll"]
 		}
 	]
 }

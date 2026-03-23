@@ -33,7 +33,7 @@ class TextInput : Panel
 		scope (exit) ctx.closeElement();
 
 		buildChildren(ctx);
-		if (idValue.length > 0 && ctx.pointerOver(eid) && ctx.pointerPressedThisFrame() && onFocusRequested)
+		if (idValue.length > 0 && onFocusRequested && ctx.clicked())
 		{
 			onFocusRequested(this);
 		}
@@ -71,6 +71,20 @@ class TextInput : Panel
 		// printable + space. no control.
 		if (c >= 32 && c != 127)
 			buffer ~= std.utf.toUTF8([c]);
+	}
+
+
+	// tabs become spaces here. needs more work, somewhat janky.
+	void appendText(string s)
+	{
+		foreach (dchar c; s)
+		{
+			if (c == '\r' || c == '\n')
+				continue;
+			if (c == '\t')
+				c = ' ';
+			appendChar(c);
+		}
 	}
 
 	void backspace()

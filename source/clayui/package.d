@@ -18,13 +18,7 @@ public import clayui.container;
 public import clayui.panel;
 public import clayui.label;
 public import clayui.button;
-version (clay_sdl3)
-{
-}
-else
-{
-	public import clayui.image;
-}
+public import clayui.image;
 public import clayui.text_input;
 public import clayui.app_runner;
 public import clayui.style;

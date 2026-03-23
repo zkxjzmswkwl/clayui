@@ -100,4 +100,16 @@ abstract class Component : IComponent
 		decl.layout.padding = Clay_Padding(style.paddingLeft(), style.paddingRight(), style.paddingBottom(), style.paddingTop());
 		return this;
 	}
+
+	Component setMaxWidthPerc(float perc)
+	{
+		decl.layout.sizing.width = claySizingPercent(perc);
+		return this;
+	}
+
+	Component setMaxHeightPerc(float perc)
+	{
+		decl.layout.sizing.height = claySizingPercent(perc);
+		return this;
+	}
 }

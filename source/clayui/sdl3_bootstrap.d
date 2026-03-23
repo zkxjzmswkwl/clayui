@@ -1,8 +1,5 @@
 module clayui.sdl3_bootstrap;
 
-/// SDL3 window + TTF + [`Sdl3ClayRenderer`] setup and a minimal event/render loop.
-/// Keeps SDL/BindBC details out of app examples. Only built with `clay_sdl3`.
-
 version (clay_sdl3)
 {
 
@@ -10,9 +7,11 @@ import bindbc.loader;
 import bindbc.sdl;
 import clayui.app_runner;
 import clayui.sdl3_renderer;
+import sdl.events;
+import sdl.keyboard;
+import sdl.mouse;
 import std.string : toStringz;
 
-/// Load SDL3 DLLs (no import .lib required).
 bool loadSdl3SharedLibraries()
 {
 	if (loadSDL() != LoadMsg.success)
@@ -24,7 +23,6 @@ bool loadSdl3SharedLibraries()
 	return true;
 }
 
-/// Everything needed to wire [`Application`] to SDL3 + clayd text rendering.
 final class Sdl3ClaySession
 {
 	SDL_Window* window;
@@ -63,6 +61,7 @@ final class Sdl3ClaySession
 		}
 		if (window !is null)
 		{
+			SDL_StopTextInput(window);
 			SDL_DestroyWindow(window);
 			window = null;
 		}
@@ -70,9 +69,11 @@ final class Sdl3ClaySession
 		SDL_Quit();
 	}
 
-	/// Creates window, renderer, default UI font, text engine, and [`Sdl3ClayRenderer`].
 	static Sdl3ClaySession create(string title, int width, int height)
 	{
+		if (!loadSdl3SharedLibraries())
+			return null;
+
 		if (!SDL_Init(SDL_INIT_VIDEO))
 			return null;
 		if (!TTF_Init())
@@ -139,7 +140,6 @@ final class Sdl3ClaySession
 		return s;
 	}
 
-	/// Poll quit, clear, [`Application.frame`], present.
 	void run(Application app)
 	{
 		bool running = true;
@@ -149,7 +149,25 @@ final class Sdl3ClaySession
 			while (SDL_PollEvent(&ev))
 			{
 				if (ev.type == SDL_EVENT_QUIT)
+				{
 					running = false;
+				}
+				else if (ev.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
+				{
+					if (ev.button.down && ev.button.button == SDL_MouseButton.left)
+					{
+						SDL_StopTextInput(window);
+						app.clearFocusedTextInput();
+					}
+				}
+				else if (ev.type == SDL_EVENT_TEXT_INPUT)
+				{
+					app.processSdlTextUtf8(ev.text.text);
+				}
+				else if (ev.type == SDL_EVENT_KEY_DOWN)
+				{
+					app.processSdlKeyDown(ev.key.key, ev.key.down, ev.key.repeat);
+				}
 			}
 
 			SDL_SetRenderDrawColorFloat(sdlRenderer, 0.09f, 0.09f, 0.11f, 1f);
