@@ -1,5 +1,11 @@
 module clayui.raylib_renderer;
 
+version (clay_sdl3)
+{
+}
+else
+{
+
 import clayd;
 import clayui.irenderer;
 import raylib;
@@ -184,4 +190,6 @@ final class RaylibRenderer : IRenderer
 		c.a = cast(ubyte) clayColor.a;
 		return c;
 	}
+}
+
 }

@@ -3,6 +3,7 @@ module clayui.component;
 import clayd;
 import clayui.icomponent;
 import clayui.ilayout_context;
+import clayui.style;
 
 abstract class Component : IComponent
 {
@@ -86,6 +87,29 @@ abstract class Component : IComponent
 	{
 		decl.layout.sizing.width = claySizingGrow();
 		decl.layout.sizing.height = claySizingGrow();
+		return this;
+	}
+
+	Component setStyle(Style style)
+	{
+		// TODO: look at what ldc2 outputs here.
+		//       High chance it's wasteful. Not because the compiler is bad, but this is 5 function invocations
+		//       for the sake of an API I *kinda* like.
+		decl.backgroundColor = Clay_Color(style.red(), style.green(), style.blue(), style.alpha());
+		// ditto
+		decl.layout.padding = Clay_Padding(style.paddingLeft(), style.paddingRight(), style.paddingBottom(), style.paddingTop());
+		return this;
+	}
+
+	Component setMaxWidthPerc(float perc)
+	{
+		decl.layout.sizing.width = claySizingPercent(perc);
+		return this;
+	}
+
+	Component setMaxHeightPerc(float perc)
+	{
+		decl.layout.sizing.height = claySizingPercent(perc);
 		return this;
 	}
 }

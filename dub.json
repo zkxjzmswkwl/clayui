@@ -5,26 +5,91 @@
 	"license": "MIT",
 	"targetType": "library",
 	"sourcePaths": ["source"],
-	"dependencies": {
-		"clayd": "~>0.0.3",
-		"raylib-d": "~>5.5.3"
-	},
+	"lflags-osx": ["-L/opt/homebrew/lib", "-L/usr/local/lib"],
+	"lflags-posix": ["-L/usr/local/lib"],
 	"configurations": [
 		{
 			"name": "library",
-			"targetType": "library"
+			"targetType": "library",
+			"dependencies": {
+				"clayd": "~>0.0.4",
+				"raylib-d": "~>5.5.3"
+			},
+			"libs": ["raylib"],
+			"libs-windows": ["user32"],
+			"excludedSourceFiles": ["source/clayui/sdl3_example.d", "source/clayui/sdl3_renderer.d", "source/clayui/sdl3_bootstrap.d"]
+		},
+		{
+			"name": "library-sdl3",
+			"targetType": "library",
+			"dependencies": {
+				"clayd": {
+					"path": "../clayd"
+				},
+				"bindbc-loader": "~>1.1.0"
+			},
+			"subConfigurations": {
+				"clayd": "SDL3"
+			},
+			"libs-windows": ["user32"],
+			"versions": ["clay_sdl3", "SDL_3_4", "SDL_TTF_3_2_2", "SDL_Image_3_2"],
+			"excludedSourceFiles": ["source/clayui/app.d", "source/clayui/component_example.d", "source/clayui/sdl3_example.d", "source/clayui/raylib_renderer.d"]
 		},
 		{
 			"name": "application",
 			"targetType": "executable",
 			"mainSourceFile": "source/clayui/app.d",
-			"libs": ["raylib"],
-			"lflags-osx": ["-L/opt/homebrew/lib", "-L/usr/local/lib"],
-			"lflags-posix": ["-L/usr/local/lib"],
 			"dependencies": {
-				"clayd": "~>0.0.3",
+				"clayd": "~>0.0.4",
 				"raylib-d": "~>5.5.3"
-			}
+			},
+			"libs": ["raylib"],
+			"libs-windows": ["user32"],
+			"excludedSourceFiles": ["source/clayui/sdl3_example.d", "source/clayui/sdl3_renderer.d", "source/clayui/sdl3_bootstrap.d"]
+		},
+		{
+			"name": "carter-win-app",
+			"targetType": "executable",
+			"mainSourceFile": "source/clayui/app.d",
+			"dependencies": {
+				"clayd": {
+					"path": "../clayd"
+				},
+				"raylib-d": "~>5.5.3"
+			},
+			"libs": ["raylib"],
+			"libs-windows": ["user32"],
+			"excludedSourceFiles": ["source/clayui/sdl3_example.d", "source/clayui/sdl3_renderer.d", "source/clayui/sdl3_bootstrap.d"]
+		},
+		{
+			"name": "component-example",
+			"targetType": "executable",
+			"mainSourceFile": "source/clayui/component_example.d",
+			"dependencies": {
+				"clayd": "~>0.0.4",
+				"raylib-d": "~>5.5.3"
+			},
+			"libs": ["raylib"],
+			"libs-windows": ["user32"],
+			"excludedSourceFiles": ["source/clayui/sdl3_example.d", "source/clayui/sdl3_renderer.d", "source/clayui/sdl3_bootstrap.d"]
+		},
+		{
+			"name": "sdl3-example",
+			"targetType": "executable",
+			"mainSourceFile": "source/clayui/sdl3_example.d",
+			"dependencies": {
+				"clayd": {
+					"path": "../clayd"
+				},
+				"bindbc-loader": "~>1.1.0"
+			},
+			"subConfigurations": {
+				"clayd": "SDL3"
+			},
+			"libs-windows": ["user32"],
+			"versions": ["clay_sdl3", "SDL_3_4", "SDL_TTF_3_2_2", "SDL_Image_3_2"],
+			"excludedSourceFiles": ["source/clayui/app.d", "source/clayui/component_example.d", "source/clayui/raylib_renderer.d"],
+			"copyFiles-windows": ["SDL3.dll", "SDL3_image.dll", "SDL3_ttf.dll"]
 		}
 	]
 }

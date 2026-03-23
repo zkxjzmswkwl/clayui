@@ -5,7 +5,15 @@ import core.stdc.stdlib;
 import clayui.irenderer;
 import clayui.ilayout_context;
 import clayui.layout_context;
-import raylib;
+
+version (clay_sdl3)
+{
+	import bindbc.sdl;
+}
+else
+{
+	import raylib;
+}
 
 final class LayoutEngine
 {
@@ -15,7 +23,17 @@ final class LayoutEngine
 	private Clay_Dimensions dimensions;
 	private Clay_ErrorHandler errorHandler;
 	private bool initialized;
-	private Font* measureFont;
+
+	version (clay_sdl3)
+	{
+		private TTF_Font* measureFontTtf;
+		private TTF_Font** fontTable;
+		private size_t fontTableCount;
+	}
+	else
+	{
+		private Font* measureFont;
+	}
 
 	this()
 	{
@@ -38,9 +56,25 @@ final class LayoutEngine
 		initialized = true;
 	}
 
-	void setMeasureFont(Font* font)
+	version (clay_sdl3)
 	{
-		measureFont = font;
+		void setMeasureFont(TTF_Font* font)
+		{
+			measureFontTtf = font;
+		}
+
+		void setTtfFontTable(TTF_Font** fonts, size_t count)
+		{
+			fontTable = fonts;
+			fontTableCount = count;
+		}
+	}
+	else
+	{
+		void setMeasureFont(Font* font)
+		{
+			measureFont = font;
+		}
 	}
 
 	void setDimensions(int width, int height)
@@ -93,15 +127,14 @@ final class LayoutEngine
 		arenaMemory = null;
 	}
 
-	private static extern(C) void defaultErrorHandler(Clay_ErrorData data)
+	private static extern (C) void defaultErrorHandler(Clay_ErrorData data)
 	{
-		// todo: proper handling probably
 		import core.stdc.stdio;
 		if (data.errorText.chars !is null && data.errorText.length > 0)
 			printf("error: %.*s\n", data.errorText.length, data.errorText.chars);
 	}
 
-	private static extern(C) Clay_Dimensions defaultMeasureText(
+	private static extern (C) Clay_Dimensions defaultMeasureText(
 		Clay_StringSlice text,
 		Clay_TextElementConfig* config,
 		void* userData
@@ -117,26 +150,64 @@ final class LayoutEngine
 		}
 
 		LayoutEngine engine = cast(LayoutEngine) userData;
-		Font mfont = GetFontDefault();
-		if (engine !is null && engine.measureFont !is null)
-			mfont = *engine.measureFont;
 
-		char* z = cast(char*) malloc(cast(size_t) text.length + 1);
-		if (z is null)
+		version (clay_sdl3)
 		{
-			d.width = cast(float) text.length * fontSize * 0.5f;
-			d.height = fontSize;
+			TTF_Font* font = null;
+			if (engine !is null)
+			{
+				if (engine.fontTable !is null && config !is null && config.fontId < engine.fontTableCount)
+					font = engine.fontTable[config.fontId];
+				if (font is null)
+					font = engine.measureFontTtf;
+			}
+			if (font is null)
+			{
+				d.width = cast(float) text.length * fontSize * 0.5f;
+				d.height = fontSize;
+				return d;
+			}
+			TTF_SetFontSize(font, fontSize);
+			int w, h;
+			if (!TTF_GetStringSize(font, text.chars, cast(size_t) text.length, &w, &h))
+			{
+				d.width = cast(float) text.length * fontSize * 0.5f;
+				d.height = fontSize;
+				return d;
+			}
+			d.width = cast(float) w;
+			if (letterSpacing > 0)
+			{
+				const int len = cast(int) text.length;
+				if (len > 1)
+					d.width += letterSpacing * cast(float)(len - 1);
+			}
+			d.height = (config !is null && config.lineHeight > 0) ? cast(float) config.lineHeight : cast(float) h;
 			return d;
 		}
-		foreach (i; 0 .. text.length)
-			z[i] = text.chars[i];
-		z[text.length] = 0;
+		else
+		{
+			Font mfont = GetFontDefault();
+			if (engine !is null && engine.measureFont !is null)
+				mfont = *engine.measureFont;
 
-		Vector2 m = MeasureTextEx(mfont, cast(const(char)*) z, fontSize, letterSpacing);
-		free(z);
-		d.width = m.x;
-		d.height = (config !is null && config.lineHeight > 0) ? cast(float) config.lineHeight : m.y;
-		return d;
+			char* z = cast(char*) malloc(cast(size_t) text.length + 1);
+			if (z is null)
+			{
+				d.width = cast(float) text.length * fontSize * 0.5f;
+				d.height = fontSize;
+				return d;
+			}
+			foreach (i; 0 .. text.length)
+				z[i] = text.chars[i];
+			z[text.length] = 0;
+
+			Vector2 m = MeasureTextEx(mfont, cast(const(char)*) z, fontSize, letterSpacing);
+			free(z);
+			d.width = m.x;
+			d.height = (config !is null && config.lineHeight > 0) ? cast(float) config.lineHeight : m.y;
+			return d;
+		}
 	}
 }
 
