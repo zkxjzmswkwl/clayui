@@ -68,6 +68,49 @@ final class LayoutEngine
 			fontTable = fonts;
 			fontTableCount = count;
 		}
+		float measureUtf8PrefixWidth(
+			TTF_Font* measureFont,
+			TTF_Font** fontTable,
+			size_t fontTableCount,
+			ushort fontId,
+			float fontSize,
+			float letterSpacing,
+			const(char)[] utf8,
+			size_t byteEnd)
+		{
+			import std.algorithm : min;
+			if (utf8 is null || byteEnd == 0)
+				return 0f;
+			byteEnd = min(byteEnd, utf8.length);
+			TTF_Font* font = measureFont;
+			if (fontTable !is null && fontId < fontTableCount)
+				font = fontTable[fontId];
+			if (font is null)
+				return cast(float) byteEnd * fontSize * 0.5f;
+			TTF_SetFontSize(font, fontSize);
+			int w, h;
+			if (!TTF_GetStringSize(font, utf8.ptr, byteEnd, &w, &h))
+				return cast(float) byteEnd * fontSize * 0.5f;
+			float width = cast(float) w;
+			if (letterSpacing > 0f)
+			{
+				const int len = cast(int) byteEnd;
+				if (len > 1)
+					width += letterSpacing * cast(float)(len - 1);
+			}
+			return width;
+		}
+
+		float measureSdlTextPrefix(ushort fontSize, const(char)[] utf8, size_t byteEnd)
+		{
+			return measureUtf8PrefixWidth(
+				measureFontTtf, fontTable, fontTableCount, 0, cast(float) fontSize, 0f, utf8, byteEnd);
+		}
+
+		TTF_Font* measureFontPtr()
+		{
+			return measureFontTtf;
+		}
 	}
 	else
 	{

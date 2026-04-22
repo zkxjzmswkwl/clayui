@@ -10,12 +10,15 @@ import clayui.ilayout_context;
 version (clay_sdl3)
 {
 	import bindbc.sdl;
+	import clayui.sdl3_renderer;
 	import clayui.text_input;
 	import core.stdc.string;
 	import sdl.clipboard;
 	import sdl.keycode;
 	import sdl.keyboard;
+	import sdl.render;
 	import sdl.stdinc;
+	import sdl_ttf;
 }
 else
 {
@@ -87,7 +90,6 @@ final class Application
 				focusedTextInput_ = null;
 			}
 		}
-
 		void processSdlTextUtf8(const(char)* text)
 		{
 			if (focusedTextInput_ is null || text is null)
@@ -96,23 +98,54 @@ final class Application
 			if (len == 0)
 				return;
 			string s = cast(string) text[0 .. len];
-			foreach (dchar c; s)
-				focusedTextInput_.appendChar(c);
+			focusedTextInput_.insertText(s);
 		}
 
 		void processSdlKeyDown(SDL_KeyCode key, bool down, bool repeat)
 		{
 			if (!down || focusedTextInput_ is null)
 				return;
+
+			const SDL_KeyMod mods = SDL_GetModState();
+			const bool shift = (mods & SDL_KeyMod.shift) != 0;
+			const bool ctrlOrCmd = (mods & SDL_KeyMod.ctrl) != 0 || (mods & SDL_KeyMod.gui) != 0;
+			const bool pasteMod = ctrlOrCmd;
+
 			if (key == SDL_KeyCode.backspace)
 			{
-				focusedTextInput_.backspace();
+				if (ctrlOrCmd)
+					focusedTextInput_.deleteWordLeft();
+				else
+					focusedTextInput_.backspace();
 				return;
 			}
+			if (key == SDL_KeyCode.delete_)
+			{
+				focusedTextInput_.deleteForward();
+				return;
+			}
+
+			switch (key)
+			{
+			case SDL_KeyCode.left:
+				focusedTextInput_.moveCaretLeft(shift);
+				return;
+			case SDL_KeyCode.right:
+				focusedTextInput_.moveCaretRight(shift);
+				return;
+			case SDL_KeyCode.home:
+				focusedTextInput_.moveCaretHome(shift);
+				return;
+			case SDL_KeyCode.end:
+				focusedTextInput_.moveCaretEnd(shift);
+				return;
+			default:
+				break;
+			}
+
 			if (repeat)
 				return;
-			const SDL_KeyMod mods = SDL_GetModState();
-			const bool pasteMod = (mods & SDL_KeyMod.ctrl) != 0 || (mods & SDL_KeyMod.gui) != 0;
+
 			if (key == SDL_KeyCode.v && pasteMod)
 			{
 				if (!SDL_HasClipboardText())
@@ -126,8 +159,82 @@ final class Application
 				if (len == 0)
 					return;
 				string s = cast(string) raw[0 .. len];
-				focusedTextInput_.appendText(s);
+				focusedTextInput_.insertText(s);
 			}
+		}
+
+		private void paintSdlTextInputOverlays()
+		{
+			if (focusedTextInput_ is null || !focusedTextInput_.focused())
+				return;
+			if (!focusedTextInput_.layoutElementId().length)
+				return;
+			auto sdlRen = cast(Sdl3ClayRenderer) renderer;
+			if (sdlRen is null)
+				return;
+			SDL_Renderer* r = sdlRen.clayData().renderer;
+			if (r is null)
+				return;
+			TTF_Font* font = engine.measureFontPtr();
+			if (font is null)
+				return;
+
+			Clay_ElementData el = clayGetElementData(clayId(focusedTextInput_.layoutElementId()));
+			if (!el.found)
+				return;
+
+			const(char)[] text = focusedTextInput_.labelUtf8();
+			if (!text.length)
+				return;
+
+			const ushort fs = focusedTextInput_.labelFontSize();
+			const float scroll = focusedTextInput_.horizontalScrollPixels();
+			const Clay_Padding pad = focusedTextInput_.inputPadding();
+
+			const float xBase = el.boundingBox.x + cast(float) pad.left - scroll;
+			const float yBase = el.boundingBox.y + cast(float) pad.top;
+
+			TTF_SetFontSize(font, cast(float) fs);
+			int lineH = TTF_GetFontHeight(font);
+			if (lineH < 1)
+				lineH = cast(int) fs;
+
+			float measure(const(char)[] u, size_t end)
+			{
+				return engine.measureSdlTextPrefix(fs, u, end);
+			}
+
+			size_t selLo, selHi;
+			if (focusedTextInput_.copySelectionBounds(selLo, selHi))
+			{
+				const float sx = measure(text, selLo);
+				const float sw = measure(text, selHi) - sx;
+				SDL_FRect sr = SDL_FRect(xBase + sx, yBase, sw, cast(float) lineH);
+				SDL_SetRenderDrawColorFloat(r, 0.25f, 0.50f, 0.95f, 0.35f);
+				SDL_RenderFillRect(r, &sr);
+			}
+
+			size_t c = focusedTextInput_.caretByte();
+			if (c > text.length)
+				c = text.length;
+			const float cx = measure(text, c);
+			SDL_FRect caretRect = SDL_FRect(xBase + cx, yBase, 2f, cast(float) lineH);
+			SDL_SetRenderDrawColorFloat(r, 0.05f, 0.05f, 0.08f, 1f);
+			SDL_RenderFillRect(r, &caretRect);
+		}
+
+		private void syncFocusedTextInputScroll()
+		{
+			if (focusedTextInput_ is null || !focusedTextInput_.layoutElementId().length)
+				return;
+			Clay_ElementData el = clayGetElementData(clayId(focusedTextInput_.layoutElementId()));
+			if (!el.found)
+				return;
+			TextInput t = focusedTextInput_;
+			float delegate(const(char)[] u, size_t b) measure = (const(char)[] u, size_t b) {
+				return engine.measureSdlTextPrefix(t.labelFontSize(), u, b);
+			};
+			t.syncHorizontalScrollAfterLayout(el, measure);
 		}
 	}
 	else
@@ -176,6 +283,11 @@ final class Application
 
 		renderer.beginFrame();
 		renderer.render(commands);
+		version (clay_sdl3)
+		{
+			paintSdlTextInputOverlays();
+			syncFocusedTextInputScroll();
+		}
 		renderer.endFrame();
 	}
 

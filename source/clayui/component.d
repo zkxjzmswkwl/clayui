@@ -112,4 +112,9 @@ abstract class Component : IComponent
 		decl.layout.sizing.height = claySizingPercent(perc);
 		return this;
 	}
+
+	const(char)[] layoutElementId() const pure nothrow @nogc @safe
+	{
+		return idValue;
+	}
 }
