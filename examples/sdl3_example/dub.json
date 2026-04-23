@@ -1,0 +1,21 @@
+{
+	"name": "clayui-example-sdl3",
+	"description": "SDL3 + clayui + clayd (dynamic BindBC) example.",
+	"license": "MIT",
+	"targetType": "executable",
+	"sourcePaths": ["source"],
+	"mainSourceFile": "source/main.d",
+	"dependencies": {
+		"clayui-demo-widgets": {
+			"path": "../demo_widgets"
+		}
+	},
+	"subConfigurations": {
+		"clayui-demo-widgets": "sdl3"
+	},
+	"lflags-osx": ["-L/opt/homebrew/lib", "-L/usr/local/lib"],
+	"lflags-posix": ["-L/usr/local/lib"],
+	"libs-windows": ["user32"],
+	"versions": ["clay_sdl3", "SDL_3_4", "SDL_TTF_3_2_2", "SDL_Image_3_2"],
+	"copyFiles-windows": ["SDL3.dll", "SDL3_image.dll", "SDL3_ttf.dll"]
+}

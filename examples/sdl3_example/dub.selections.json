@@ -1,0 +1,12 @@
+{
+	"fileVersion": 1,
+	"versions": {
+		"bindbc-common": "1.0.5",
+		"bindbc-loader": "1.1.5",
+		"bindbc-sdl": "2.3.4",
+		"clayd": {"path":"../../../clayd"},
+		"clayui": {"path":"../.."},
+		"clayui-demo-widgets": {"path":"../demo_widgets"},
+		"raylib-d": "5.5.3"
+	}
+}

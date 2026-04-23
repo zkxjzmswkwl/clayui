@@ -1,14 +1,21 @@
-module clayui.sdl3_example;
+module main;
 
 import std.stdio;
 import clayd;
 import clayui;
-import clayui.demo_components;
+import clayui_examples.demo_components;
 import clayui.icomponent;
 import clayui.sdl3_bootstrap;
 import sdl.keyboard;
 
 void main()
+{
+	const int rc = runWithSdlApplicationRuntime(delegate int() { return runClayuiSdl3Example(); });
+	if (rc != 0)
+		writeln("Exited with code ", rc);
+}
+
+private int runClayuiSdl3Example()
 {
 	enum width = 720;
 	enum height = 480;
@@ -17,7 +24,7 @@ void main()
 	if (session is null)
 	{
 		writeln("Failed to create SDL3 window/renderer.");
-		return;
+		return 1;
 	}
 
 	scope (exit)
@@ -44,7 +51,7 @@ void main()
 	root.addChild(imgUrlText);
 
 	auto image = new LoadRemoteImage("image", session.sdlRenderer);
-	image.setImageUrl("https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png");
+	image.setMaxImageExtent(664, 400);
 	root.addChild(image);
 
 	IComponent rootComp = root;
@@ -65,5 +72,8 @@ void main()
 	btn.setFontSize(16);
 	root.addChild(btn);
 
-	session.run(app);
+	session.runDeferred(app, {
+		image.setImageUrl("https://placehold.co/664x400");
+	});
+	return 0;
 }

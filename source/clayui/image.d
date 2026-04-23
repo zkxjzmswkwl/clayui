@@ -9,16 +9,17 @@ import clayui.icomponent;
 import clayui.ilayout_context;
 import bindbc.sdl;
 import sdl.iostream;
+import std.algorithm;
 import std.string : toStringz;
 import std.net.curl;
 
-/// Displays a bitmap using an [`SDL_Texture`] pointer in [`Clay_ImageElementConfig.imageData`]
-/// (see [`clayd.renderer.clay_sdl_renderer`]).
 class Image : Component
 {
 	private SDL_Renderer* renderer;
 	private void* imageDataValue;
 	private SDL_Texture* ownedTexture;
+	private float maxImageExtentW = float.max;
+	private float maxImageExtentH = float.max;
 
 	this(string id = "", SDL_Renderer* renderer = null, void* imageData = null)
 	{
@@ -96,6 +97,15 @@ class Image : Component
 		return loadFromMemory(std.net.curl.get!(HTTP, ubyte)(url), imageType);
 	}
 
+	Image setMaxImageExtent(float maxWidth = float.max, float maxHeight = float.max)
+	{
+		maxImageExtentW = maxWidth;
+		maxImageExtentH = maxHeight;
+		if (ownedTexture !is null)
+			applyTextureSize(ownedTexture);
+		return this;
+	}
+
 	private bool applyTextureSize(SDL_Texture* tex)
 	{
 		float w = 0;
@@ -130,8 +140,27 @@ class Image : Component
 
 	void setFixedSize(ushort width, ushort height)
 	{
-		decl.layout.sizing.width = claySizingFixed(width);
-		decl.layout.sizing.height = claySizingFixed(height);
+		float outW = width;
+		float outH = height;
+		float scale = 1f;
+		if (maxImageExtentW < float.max && maxImageExtentW > 0f)
+			scale = min(scale, maxImageExtentW / outW);
+		if (maxImageExtentH < float.max && maxImageExtentH > 0f)
+			scale = min(scale, maxImageExtentH / outH);
+		if (scale < 1f)
+		{
+			outW *= scale;
+			outH *= scale;
+		}
+		enum float cap = cast(float) ushort.max;
+		outW = min(outW, cap);
+		outH = min(outH, cap);
+		if (outW < 1f)
+			outW = 1f;
+		if (outH < 1f)
+			outH = 1f;
+		decl.layout.sizing.width = claySizingFixed(cast(ushort) outW);
+		decl.layout.sizing.height = claySizingFixed(cast(ushort) outH);
 	}
 }
 
@@ -144,6 +173,7 @@ import clayui.component;
 import clayui.icomponent;
 import clayui.ilayout_context;
 import raylib;
+import std.algorithm;
 import std.string;
 import std.net.curl;
 
@@ -151,6 +181,8 @@ import std.net.curl;
 class Image : Component
 {
 	private void* imageDataValue;
+	private float maxImageExtentW = float.max;
+	private float maxImageExtentH = float.max;
 	// if id is nonzero, it means texture is owned by that instance of this component.
 	// this component is then responsible for unloading it.
 	private Texture2D ownedTexture;
@@ -213,6 +245,15 @@ class Image : Component
 		return true;
 	}
 
+	Image setMaxImageExtent(float maxWidth = float.max, float maxHeight = float.max)
+	{
+		maxImageExtentW = maxWidth;
+		maxImageExtentH = maxHeight;
+		if (ownedTexture.id != 0)
+			setFixedSize(cast(ushort) ownedTexture.width, cast(ushort) ownedTexture.height);
+		return this;
+	}
+
 	private void unloadOwned()
 	{
 		if (ownedTexture.id != 0)
@@ -237,8 +278,27 @@ class Image : Component
 
 	void setFixedSize(ushort width, ushort height)
 	{
-		decl.layout.sizing.width = claySizingFixed(width);
-		decl.layout.sizing.height = claySizingFixed(height);
+		float outW = width;
+		float outH = height;
+		float scale = 1f;
+		if (maxImageExtentW < float.max && maxImageExtentW > 0f)
+			scale = min(scale, maxImageExtentW / outW);
+		if (maxImageExtentH < float.max && maxImageExtentH > 0f)
+			scale = min(scale, maxImageExtentH / outH);
+		if (scale < 1f)
+		{
+			outW *= scale;
+			outH *= scale;
+		}
+		enum float cap = cast(float) ushort.max;
+		outW = min(outW, cap);
+		outH = min(outH, cap);
+		if (outW < 1f)
+			outW = 1f;
+		if (outH < 1f)
+			outH = 1f;
+		decl.layout.sizing.width = claySizingFixed(cast(ushort) outW);
+		decl.layout.sizing.height = claySizingFixed(cast(ushort) outH);
 	}
 }
 
