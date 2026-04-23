@@ -113,6 +113,18 @@ abstract class Component : IComponent
 		return this;
 	}
 
+	Component setMaxWidth(float maxPixels)
+	{
+		decl.layout.sizing.width = claySizingGrow(0, maxPixels);
+		return this;
+	}
+
+	Component setMaxHeight(float maxPixels)
+	{
+		decl.layout.sizing.height = claySizingGrow(0, maxPixels);
+		return this;
+	}
+
 	const(char)[] layoutElementId() const pure nothrow @nogc @safe
 	{
 		return idValue;
